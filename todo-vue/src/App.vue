@@ -1,47 +1,97 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import { reactive } from 'vue';
+
+const estado = reactive({
+  filtro: 'Todas',
+  tarefaTemp: '',
+  tarefas: [
+    {
+      titulo: 'Estudar ES6',
+      finalizada: false
+    },
+    {
+      titulo: 'Estudar SASS',
+      finalizada: false
+    },
+    {
+      titulo: 'Ir para a academia',
+      finalizada: true
+    }
+  ]
+})
+
+const getTarefasPendentes = () => {
+  return estado.tarefas.filter(tarefa => !tarefa.finalizada)
+}
+
+const getTarefasFinalizadas = () => {
+  return estado.tarefas.filter(tarefa => tarefa.finalizada)
+}
+
+const getTarefasFiltradas = () => {
+  const { filtro } = estado;
+
+  switch (filtro) {
+    case 'Pendentes':
+      return getTarefasPendentes();
+    case 'Finalizadas':
+      return getTarefasFinalizadas();
+    default:
+      return estado.tarefas;
+  }
+}
+
+const cadastrarTarefa = () => {
+  const tarefaNova = {
+    titulo: estado.tarefaTemp,
+    finalizada: false
+  }
+  estado.tarefas.push(tarefaNova);
+  estado.tarefaTemp = '';
+}
+
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <div class="container">
+    <header class="p-5 mb-4 mt-4 bg-light rounded-3">
+      <h1>Minhas Tarefas</h1>
+      <p>
+        Voce possui {{ getTarefasPendentes().length }} tarefas pendentes
+      </p>
+    </header>
+    <form @submit.prevent="cadastrarTarefa">
+      <div class="row">
+        <div class="col">
+          <input :value="estado.tarefaTemp" @change="evento => estado.tarefaTemp = evento.target.value" required type="text"
+            placeholder="Digite aqui a descricao da tarefa" class="form-control">
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary" type="submit">Cadastrar</button>
+        </div>
+        <div class="col-md-2">
+          <select @change="evento => estado.filtro = evento.target.value" class="form-control">
+            <option value="Todas">Todas</option>
+            <option value="Pendentes">Pendentes</option>
+            <option value="Finalizadas">Finalizadas</option>
+          </select>
+        </div>
+      </div>
+    </form>
+    <ul class="list-group mt-4">
+      <li class="list-group-item" v-for="tarefa in getTarefasFiltradas()">
+        <input @change="evento => tarefa.finalizada = evento.target.checked" :checked="tarefa.finalizada"
+          :id="tarefa.titulo" type="checkbox">
+        <label :class="{ done: tarefa.finalizada }" class="ms-3" :for="tarefa.titulo">
+          {{ tarefa.titulo }}
+        </label>
+      </li>
+    </ul>
+  </div>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.done {
+  text-decoration: line-through;
 }
 </style>
